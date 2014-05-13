@@ -1,7 +1,7 @@
 ﻿using System.Web;
 using System.Web.Optimization;
 
-namespace test_AvatarUpload
+namespace AvatarUploadMvc5
 {
     public class BundleConfig
     {

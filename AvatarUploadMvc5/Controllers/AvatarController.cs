@@ -6,7 +6,7 @@ using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
 
-namespace test_AvatarUpload.Controllers
+namespace AvatarUploadMvc5.Controllers
 {
     public class AvatarController : Controller
     {

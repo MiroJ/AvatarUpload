@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
-namespace test_AvatarUpload
+namespace AvatarUploadMvc5
 {
     public class RouteConfig
     {

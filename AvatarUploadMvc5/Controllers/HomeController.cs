@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-namespace test_AvatarUpload.Controllers
+namespace AvatarUploadMvc5.Controllers
 {
     public class HomeController : Controller
     {

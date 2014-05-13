@@ -8,11 +8,11 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.Owin.Security;
-using test_AvatarUpload.Models;
+using AvatarUploadMvc5.Models;
 using System.IO;
 using System.Web.Helpers;
 
-namespace test_AvatarUpload.Controllers
+namespace AvatarUploadMvc5.Controllers
 {
     [Authorize]
     public class AccountController : Controller

@@ -3,7 +3,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Owin;
 
-namespace test_AvatarUpload
+namespace AvatarUploadMvc5
 {
     public partial class Startup
     {

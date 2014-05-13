@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace test_AvatarUpload.Models
+namespace AvatarUploadMvc5.Models
 {
     public class ExternalLoginConfirmationViewModel
     {
