@@ -1,4 +1,4 @@
-AvatarUpload
+Avatar Upload
 ============
 
 ASP.NET MVC 5 avatar upload implementation.
