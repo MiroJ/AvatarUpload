@@ -1,4 +1,9 @@
-﻿var jcrop_api,
+﻿// ================================================================
+//  Description: Avatar Upload supporting script
+//  License:     MIT - check License.txt file for details
+//  Author:      Codative Corp. (http://www.codative.com/)
+// ================================================================
+var jcrop_api,
     boundx,
     boundy,
     xsize,
@@ -18,11 +23,12 @@ $(function () {
             for (var x in files) {
                 if (files[x].name != "item" && typeof files[x].name != "undefined") {
                     if (files[x].size <= maxSizeAllowed * 1024 * 1024) {
+                        // Submit the selected file
                         $('#avatar-upload-form .upload-file-notice').removeClass('bg-danger');
-                        $('#avatar-upload-form button').removeClass('disabled');
+                        $('#avatar-upload-form').submit();
                     } else {
+                        // File too large
                         $('#avatar-upload-form .upload-file-notice').addClass('bg-danger');
-                        $('#avatar-upload-form button').addClass('disabled');
                     }
                 }
             }

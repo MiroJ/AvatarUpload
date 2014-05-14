@@ -159,4 +159,7 @@ $RECYCLE.BIN/
 # Custom
 # =========================
 packages/
-AvatarUploadMvc5/App_Data/
+Temp/
+/AvatarUploadMvc5/App_Data
+/AvatarUploadMvc5/Avatars
+/README.html
