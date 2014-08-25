@@ -98,7 +98,7 @@ namespace AvatarUploadMvc5.Controllers
                 return true;
             }
 
-            var extensions = new string[] { ".jpg", ".png", ".gif", ".jpeg" }; // add more if you like...
+            var extensions = new string[] { ".jpg", ".png", ".gif", ".jpeg" }; // ToDo - add more if you like...
 
             // linq from Henrik Stenbæk
             return extensions.Any(item => file.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase));
@@ -131,7 +131,7 @@ namespace AvatarUploadMvc5.Controllers
 
             string fullFileName = Path.Combine(serverPath, fileName);
 
-            img.Resize(400, (int)(400 * ratio)); // ToDo - Change the value of the width of the image oin the screen
+            img.Resize(400, (int)(400 * ratio)); // ToDo - Change the value of the width of the image on the screen
 
             if (System.IO.File.Exists(fullFileName))
                 System.IO.File.Delete(fullFileName);

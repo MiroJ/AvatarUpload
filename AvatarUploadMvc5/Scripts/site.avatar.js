@@ -22,7 +22,7 @@ $(function () {
 
             for (var x in files) {
                 if (files[x].name != "item" && typeof files[x].name != "undefined") {
-                    if (files[x].size <= maxSizeAllowed * 1024 * 1024) {
+                    if (files[x].size <= maxSizeAllowed * 1024 * 1024) { // ToDo - change the size limit of the file. You may need to change web.config if larger files are necessary.
                         // Submit the selected file
                         $('#avatar-upload-form .upload-file-notice').removeClass('bg-danger');
                         $('#avatar-upload-form').submit();
