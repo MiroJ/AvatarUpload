@@ -10,8 +10,15 @@ namespace AvatarUploadMvc5.Controllers
 {
     public class AvatarController : Controller
     {
-        private int _avatarWidth = 100; // ToDo - Change the size of the stored avatar image
-        private int _avatarHeight = 100; // ToDo - Change the size of the stored avatar image
+        private const int AvatarStoredWidth = 100;  // ToDo - Change the size of the stored avatar image
+        private const int AvatarStoredHeight = 100; // ToDo - Change the size of the stored avatar image
+        private const int AvatarScreenWidth = 400;  // ToDo - Change the value of the width of the image on the screen
+
+        private const string TempFolder = "/Temp";
+        private const string MapTempFolder = "~" + TempFolder;
+        private const string AvatarPath = "/Avatars";
+
+        private readonly string[] _imageFileExtensions = { ".jpg", ".png", ".gif", ".jpeg" };
 
         [HttpGet]
         public ActionResult Upload()
@@ -28,28 +35,12 @@ namespace AvatarUploadMvc5.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult _Upload(IEnumerable<HttpPostedFileBase> files)
         {
-            string errorMessage = "";
-
-            if (files != null && files.Count() > 0)
-            {
-                // Get one only
-                var file = files.FirstOrDefault();
-                // Check if the file is an image
-                if (file != null && IsImage(file))
-                {
-                    // Verify that the user selected a file
-                    if (file != null && file.ContentLength > 0)
-                    {
-                        var webPath = SaveTemporaryFile(file);
-                        return Json(new { success = true, fileName = webPath.Replace("/", "\\") }); // success
-                    }
-                    errorMessage = "File cannot be zero length."; //failure
-                }
-                errorMessage = "File is of wrong format."; //failure
-            }
-            errorMessage = "No file uploaded."; //failure
-
-            return Json(new { success = false, errorMessage = errorMessage });
+            if (files == null || !files.Any()) return Json(new { success = false, errorMessage = "No file uploaded." });
+            var file = files.FirstOrDefault();  // get ONE only
+            if (file == null || !IsImage(file)) return Json(new { success = false, errorMessage = "File is of wrong format." });
+            if (file.ContentLength <= 0) return Json(new { success = false, errorMessage = "File cannot be zero length." });
+            var webPath = GetTempSavedFilePath(file);
+            return Json(new { success = true, fileName = webPath.Replace("/", "\\") }); // success
         }
 
         [HttpPost]
@@ -57,32 +48,30 @@ namespace AvatarUploadMvc5.Controllers
         {
             try
             {
+                // Calculate dimensions
+                var top = Convert.ToInt32(t.Replace("-", "").Replace("px", ""));
+                var left = Convert.ToInt32(l.Replace("-", "").Replace("px", ""));
+                var height = Convert.ToInt32(h.Replace("-", "").Replace("px", ""));
+                var width = Convert.ToInt32(w.Replace("-", "").Replace("px", ""));
+
                 // Get file from temporary folder
-                var fn = Path.Combine(Server.MapPath("~/Temp"), Path.GetFileName(fileName));
-
-                // Calculate dimesnions
-                int top = Convert.ToInt32(t.Replace("-", "").Replace("px", ""));
-                int left = Convert.ToInt32(l.Replace("-", "").Replace("px", ""));
-                int height = Convert.ToInt32(h.Replace("-", "").Replace("px", ""));
-                int width = Convert.ToInt32(w.Replace("-", "").Replace("px", ""));
-
-                // Get image and resize it, ...
+                var fn = Path.Combine(Server.MapPath(MapTempFolder), Path.GetFileName(fileName));
+                // ...get image and resize it, ...
                 var img = new WebImage(fn);
                 img.Resize(width, height);
                 // ... crop the part the user selected, ...
-                img.Crop(top, left, img.Height - top - _avatarHeight, img.Width - left - _avatarWidth);
+                img.Crop(top, left, img.Height - top - AvatarStoredHeight, img.Width - left - AvatarStoredWidth);
                 // ... delete the temporary file,...
                 System.IO.File.Delete(fn);
                 // ... and save the new one.
-                string newFileName = "/Avatars/" + Path.GetFileName(fn);
-                string newFileLocation = HttpContext.Server.MapPath(newFileName);
+                var newFileName = Path.Combine(AvatarPath, Path.GetFileName(fn));
+                var newFileLocation = HttpContext.Server.MapPath(newFileName);
                 if (Directory.Exists(Path.GetDirectoryName(newFileLocation)) == false)
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(newFileLocation));
                 }
 
                 img.Save(newFileLocation);
-
                 return Json(new { success = true, avatarFileLocation = newFileName });
             }
             catch (Exception ex)
@@ -93,22 +82,15 @@ namespace AvatarUploadMvc5.Controllers
 
         private bool IsImage(HttpPostedFileBase file)
         {
-            if (file.ContentType.Contains("image"))
-            {
-                return true;
-            }
-
-            var extensions = new string[] { ".jpg", ".png", ".gif", ".jpeg" }; // ToDo - add more if you like...
-
-            // linq from Henrik Stenbæk
-            return extensions.Any(item => file.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase));
+            if (file == null) return false;
+            return file.ContentType.Contains("image") ||
+                _imageFileExtensions.Any(item => file.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase));
         }
 
-        private string SaveTemporaryFile(HttpPostedFileBase file)
+        private string GetTempSavedFilePath(HttpPostedFileBase file)
         {
             // Define destination
-            var folderName = "/Temp";
-            var serverPath = HttpContext.Server.MapPath(folderName);
+            var serverPath = HttpContext.Server.MapPath(TempFolder);
             if (Directory.Exists(serverPath) == false)
             {
                 Directory.CreateDirectory(serverPath);
@@ -120,24 +102,22 @@ namespace AvatarUploadMvc5.Controllers
 
             // Clean up old files after every save
             CleanUpTempFolder(1);
-
-            return Path.Combine(folderName, fileName);
+            return Path.Combine(TempFolder, fileName);
         }
 
-        private string SaveTemporaryAvatarFileImage(HttpPostedFileBase file, string serverPath, string fileName)
+        private static string SaveTemporaryAvatarFileImage(HttpPostedFileBase file, string serverPath, string fileName)
         {
             var img = new WebImage(file.InputStream);
-            double ratio = (double)img.Height / (double)img.Width;
+            var ratio = img.Height / (double)img.Width;
+            img.Resize(AvatarScreenWidth, (int)(AvatarScreenWidth * ratio));
 
-            string fullFileName = Path.Combine(serverPath, fileName);
-
-            img.Resize(400, (int)(400 * ratio)); // ToDo - Change the value of the width of the image on the screen
-
+            var fullFileName = Path.Combine(serverPath, fileName);
             if (System.IO.File.Exists(fullFileName))
+            {
                 System.IO.File.Delete(fullFileName);
+            }
 
             img.Save(fullFileName);
-
             return Path.GetFileName(img.FileName);
         }
 
@@ -145,26 +125,23 @@ namespace AvatarUploadMvc5.Controllers
         {
             try
             {
-                DateTime fileCreationTime;
-                DateTime currentUtcNow = DateTime.UtcNow;
-
+                var currentUtcNow = DateTime.UtcNow;
                 var serverPath = HttpContext.Server.MapPath("/Temp");
-                if (Directory.Exists(serverPath))
+                if (!Directory.Exists(serverPath)) return;
+                var fileEntries = Directory.GetFiles(serverPath);
+                foreach (var fileEntry in fileEntries)
                 {
-                    string[] fileEntries = Directory.GetFiles(serverPath);
-                    foreach (var fileEntry in fileEntries)
+                    var fileCreationTime = System.IO.File.GetCreationTimeUtc(fileEntry);
+                    var res = currentUtcNow - fileCreationTime;
+                    if (res.TotalHours > hoursOld)
                     {
-                        fileCreationTime = System.IO.File.GetCreationTimeUtc(fileEntry);
-                        var res = currentUtcNow - fileCreationTime;
-                        if (res.TotalHours > hoursOld)
-                        {
-                            System.IO.File.Delete(fileEntry);
-                        }
+                        System.IO.File.Delete(fileEntry);
                     }
                 }
             }
             catch
             {
+                // Deliberately empty.
             }
         }
     }
