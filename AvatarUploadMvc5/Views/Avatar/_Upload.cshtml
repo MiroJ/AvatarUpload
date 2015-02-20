@@ -1,43 +1,35 @@
 ﻿@Scripts.Render("~/bundles/jqueryform")
 @Scripts.Render("~/bundles/jcrop")
-@Styles.Render("~/Content/jcrop")
 @Scripts.Render("~/bundles/avatar")
+@Styles.Render("~/Content/jcrop")
 @Styles.Render("~/Content/avatar")
 
-<div id="avatar-upload-box">
-    @using (Ajax.BeginForm("_Upload", "Avatar", new AjaxOptions() { HttpMethod = "POST" }, new { enctype = "multipart/form-data", id = "avatar-upload-form" }))
+<section id="avatar-upload-box">
+    @using (Ajax.BeginForm("_Upload", "Avatar",
+        new AjaxOptions() { HttpMethod = "POST" },
+        new { enctype = "multipart/form-data", id = "avatar-upload-form" }))
     {
         @Html.AntiForgeryToken()
         <input type="file" name="files" /><br>
-        <div class="upload-file-notice">Maximum size: <span id="avatar-max-size"></span> MB</div>
+        <div class="upload-file-notice">Maximum Size: <span id="avatar-max-size"></span> MB</div>
     }
-
     <div class="upload-progress col-md-6 hidden">
         <div class="upload-percent-value pull-left">0%</div>
         <div class="upload-percent-bar pull-left"></div>
     </div>
     <div id="upload-status"></div>
-</div>
-
-<div id="avatar-crop-box" class="hidden">
-    <div class="jc-demo-box">
-        <div class="col-md-12">
-            <img src="" id="crop-avatar-target" alt="Uploaded image" />
-            <div id="preview-pane">
-                <div class="preview-container">
-                    <img src="" class="jcrop-preview" alt="Preview" />
-                </div>
+</section>
+<section id="avatar-crop-box" class="hidden">
+    <p>
+        <img src="" id="crop-avatar-target" alt="Uploaded image" />
+        <div id="preview-pane">
+            <div class="preview-container">
+                <img src="" class="jcrop-preview" alt="Preview" />
             </div>
         </div>
-
-        <div class="form-group">
-            <div class="col-md-12">
-                <button class="btn btn-default" onclick="saveAvatar()">Save avatar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
+    </p>
+    <p><button class="btn btn-default" onclick=" saveAvatar() ">Save Avatar</button></p>
+</section>
 <div id="avatar-result" class="hidden">
     <img src="" alt="Final Image" />
 </div>

@@ -9,20 +9,21 @@ var jcrop_api,
     xsize,
     ysize;
 
+// ToDo - change the size limit of the file. You may need to change web.config if larger files are necessary.
+var maxSizeAllowed = 2;     // Upload limit in MB
+var maxSizeInBytes = maxSizeAllowed * 1024 * 1024;
+var keepUploadBox = false;  // ToDo - Remove if you want to keep the upload box
+var keepCropBox = false;    // ToDo - Remove if you want to keep the crop box
+
 $(function () {
     if (typeof $('#avatar-upload-form') !== undefined) {
-        var maxSizeAllowed = 2; // ToDo - Change upload limit in MB
-
         initAvatarUpload();
-
         $('#avatar-max-size').html(maxSizeAllowed);
-
-        $("#avatar-upload-form input:file").on("change", function (e) {
+        $('#avatar-upload-form input:file').on("change", function (e) {
             var files = e.currentTarget.files;
-
             for (var x in files) {
                 if (files[x].name != "item" && typeof files[x].name != "undefined") {
-                    if (files[x].size <= maxSizeAllowed * 1024 * 1024) { // ToDo - change the size limit of the file. You may need to change web.config if larger files are necessary.
+                    if (files[x].size <= maxSizeInBytes) {
                         // Submit the selected file
                         $('#avatar-upload-form .upload-file-notice').removeClass('bg-danger');
                         $('#avatar-upload-form').submit();
@@ -51,13 +52,13 @@ function initAvatarUpload() {
                 $('#status').html(data.errorMessage);
             } else {
                 $('#preview-pane .preview-container img').attr('src', data.fileName);
-
                 var img = $('#crop-avatar-target');
                 img.attr('src', data.fileName);
 
-                $('#avatar-upload-box').addClass('hidden'); // ToDo - Remove if you want to keep the upload box
+                if (!keepUploadBox) {
+                    $('#avatar-upload-box').addClass('hidden');
+                }
                 $('#avatar-crop-box').removeClass('hidden');
-
                 initAvatarCrop(img);
             }
         },
@@ -86,18 +87,23 @@ function initAvatarCrop(img) {
         boundy = bounds[1];
 
         jcrop_api = this;
-        jcrop_api.animateTo([100, 100, 200, 200]);
         jcrop_api.setOptions({ allowSelect: true });
         jcrop_api.setOptions({ allowMove: true });
         jcrop_api.setOptions({ allowResize: true });
         jcrop_api.setOptions({ aspectRatio: 1 });
 
+        // Maximise initial selection around the centre of the image,
+        // but leave enough space so that the boundaries are easily identified.
+        var padding = 10;
+        var shortEdge = (boundx < boundy ? boundx : boundy) - padding;
+        var longEdge = boundx < boundy ? boundy : boundx;
+        var xCoord = longEdge / 2 - shortEdge / 2;
+        jcrop_api.animateTo([xCoord, padding, shortEdge, shortEdge]);
+
         var pcnt = $('#preview-pane .preview-container');
         xsize = pcnt.width();
         ysize = pcnt.height();
-
         $('#preview-pane').appendTo(jcrop_api.ui.holder);
-
         jcrop_api.focus();
     });
 }
@@ -136,7 +142,10 @@ function saveAvatar() {
             $('#avatar-result img').attr('src', data.avatarFileLocation);
 
             $('#avatar-result').removeClass('hidden');
-            $('#avatar-crop-box').addClass('hidden'); // ToDo - Remove if you want to keep the upload box
+
+            if (!keepCropBox) {
+                $('#avatar-crop-box').addClass('hidden');
+            }
         } else {
             alert(data.errorMessage)
         }
