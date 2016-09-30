@@ -19,7 +19,7 @@ namespace AvatarUploadMvc5.Controllers
         private const string AvatarPath = "/Avatars";
 
         private readonly string[] _imageFileExtensions = { ".jpg", ".png", ".gif", ".jpeg" };
-
+            
         [HttpGet]
         public ActionResult Upload()
         {
@@ -40,7 +40,9 @@ namespace AvatarUploadMvc5.Controllers
             if (file == null || !IsImage(file)) return Json(new { success = false, errorMessage = "File is of wrong format." });
             if (file.ContentLength <= 0) return Json(new { success = false, errorMessage = "File cannot be zero length." });
             var webPath = GetTempSavedFilePath(file);
-            return Json(new { success = true, fileName = webPath.Replace("/", "\\") }); // success
+            //mistertommat - 18 Nov '15 - replacing '\' to '//' results in incorrect image url on firefox and IE,
+            //                            therefore replacing '\\' to '/' so that a proper web url is returned.            
+            return Json(new { success = true, fileName = webPath.Replace("\\", "/") }); // success
         }
 
         [HttpPost]
