@@ -11,9 +11,10 @@
 }
 
     #preview-pane .preview-container {
-        overflow: hidden;
-        width: 100px;  /* ToDo - size of the crop window*/
+        /* Dimesnions of the cropped window - must match backend definitions */
+        width: 100px; /* ToDo - size of the crop window*/
         height: 100px; /* ToDo - size of the crop window*/
+        overflow: hidden;
     }
 
 .upload-progress {

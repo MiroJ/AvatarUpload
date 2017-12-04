@@ -10,13 +10,15 @@ namespace AvatarUploadMvc5.Controllers
 {
     public class AvatarController : Controller
     {
-        private const int AvatarStoredWidth = 100;  // ToDo - Change the size of the stored avatar image
-        private const int AvatarStoredHeight = 100; // ToDo - Change the size of the stored avatar image
-        private const int AvatarScreenWidth = 400;  // ToDo - Change the value of the width of the image on the screen
+        // Dimesnions of the cropped window - must match frontend definitions
+        private const int _avatarWidth = 100;  // ToDo - Change the size of the stored avatar image
+        private const int _avatarHeight = 100; // ToDo - Change the size of the stored avatar image
+        // Width of initially uploaded image (scale is preserved so height is calculated).
+        private const int _avatarScreenWidth = 400;  // ToDo - Change the value of the width of the image on the screen
 
-        private const string TempFolder = "/Temp";
-        private const string MapTempFolder = "~" + TempFolder;
-        private const string AvatarPath = "/Avatars";
+        private const string _tempFolder = "/Temp";
+        private const string _mapTempFolder = "~" + _tempFolder;
+        private const string _avatarPath = "/Avatars";
 
         private readonly string[] _imageFileExtensions = { ".jpg", ".png", ".gif", ".jpeg" };
 
@@ -35,13 +37,18 @@ namespace AvatarUploadMvc5.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult _Upload(IEnumerable<HttpPostedFileBase> files)
         {
-            if (files == null || !files.Any()) return Json(new { success = false, errorMessage = "No file uploaded." });
+            if (files == null || !files.Any())
+                return Json(new { success = false, errorMessage = "No file uploaded." });
+
             var file = files.FirstOrDefault();  // get ONE only
-            if (file == null || !IsImage(file)) return Json(new { success = false, errorMessage = "File is of wrong format." });
-            if (file.ContentLength <= 0) return Json(new { success = false, errorMessage = "File cannot be zero length." });
+            if (file == null || !IsImage(file))
+                return Json(new { success = false, errorMessage = "File is of wrong format." });
+
+            if (file.ContentLength <= 0)
+                return Json(new { success = false, errorMessage = "File cannot be zero length." });
+
             var webPath = GetTempSavedFilePath(file);
-            //mistertommat - 18 Nov '15 - replacing '\' to '//' results in incorrect image url on firefox and IE,
-            //                            therefore replacing '\\' to '/' so that a proper web url is returned.
+
             return Json(new { success = true, fileName = webPath.Replace("\\", "/") }); // success
         }
 
@@ -50,23 +57,41 @@ namespace AvatarUploadMvc5.Controllers
         {
             try
             {
-                // Calculate dimensions
-                var top = Convert.ToInt32(t.Replace("-", "").Replace("px", ""));
-                var left = Convert.ToInt32(l.Replace("-", "").Replace("px", ""));
+                // Get file from temporary folder, ...
+                var fn = Path.Combine(Server.MapPath(_mapTempFolder), Path.GetFileName(fileName));
+
+                // ... get the image, ...
+                var img = new WebImage(fn);
+
+                // ... calculate its new dimensions, ...
                 var height = Convert.ToInt32(h.Replace("-", "").Replace("px", ""));
                 var width = Convert.ToInt32(w.Replace("-", "").Replace("px", ""));
 
-                // Get file from temporary folder
-                var fn = Path.Combine(Server.MapPath(MapTempFolder), Path.GetFileName(fileName));
-                // ...get image and resize it, ...
-                var img = new WebImage(fn);
+                // ... scale it, ...
                 img.Resize(width, height);
+
                 // ... crop the part the user selected, ...
-                img.Crop(top, left, img.Height - top - AvatarStoredHeight, img.Width - left - AvatarStoredWidth);
+                var top = Convert.ToInt32(t.Replace("-", "").Replace("px", ""));
+                var left = Convert.ToInt32(l.Replace("-", "").Replace("px", ""));
+                var bottom = img.Height - top - _avatarHeight;
+                var right = img.Width - left - _avatarWidth;
+
+                // ... check for validity of calculations, ...
+                if (bottom < 0 || right < 0)
+                {
+                    // If you reach this point, your avatar sizes in here and in the CSS file are different.
+                    // Check _avatarHeight and _avatarWidth in this file
+                    // and height and width for #preview-pane .preview-container in site.avatar.css
+                    throw new ArgumentException("Definitions of dimensions of the cropping window do not match. Talk to the developer who customized the sample code :)");
+                }
+
+                img.Crop(top, left, bottom, right);
+
                 // ... delete the temporary file,...
                 System.IO.File.Delete(fn);
+
                 // ... and save the new one.
-                var newFileName = Path.Combine(AvatarPath, Path.GetFileName(fn));
+                var newFileName = Path.Combine(_avatarPath, Path.GetFileName(fn));
                 var newFileLocation = HttpContext.Server.MapPath(newFileName);
                 if (Directory.Exists(Path.GetDirectoryName(newFileLocation)) == false)
                 {
@@ -92,7 +117,7 @@ namespace AvatarUploadMvc5.Controllers
         private string GetTempSavedFilePath(HttpPostedFileBase file)
         {
             // Define destination
-            var serverPath = HttpContext.Server.MapPath(TempFolder);
+            var serverPath = HttpContext.Server.MapPath(_tempFolder);
             if (Directory.Exists(serverPath) == false)
             {
                 Directory.CreateDirectory(serverPath);
@@ -104,14 +129,14 @@ namespace AvatarUploadMvc5.Controllers
 
             // Clean up old files after every save
             CleanUpTempFolder(1);
-            return Path.Combine(TempFolder, fileName);
+            return Path.Combine(_tempFolder, fileName);
         }
 
         private static string SaveTemporaryAvatarFileImage(HttpPostedFileBase file, string serverPath, string fileName)
         {
             var img = new WebImage(file.InputStream);
             var ratio = img.Height / (double)img.Width;
-            img.Resize(AvatarScreenWidth, (int)(AvatarScreenWidth * ratio));
+            img.Resize(_avatarScreenWidth, (int)(_avatarScreenWidth * ratio));
 
             var fullFileName = Path.Combine(serverPath, fileName);
             if (System.IO.File.Exists(fullFileName))
