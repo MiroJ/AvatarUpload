@@ -3,13 +3,21 @@
 ### ASP.NET MVC 5 avatar upload implementation ###
 
 The project demonstrates how to implement uploading and cropping images that can be used for user avatars.
-It is based on a standard ASP.NET MVC 5 template, extended with some other packages: 
+
+### Dependencies ###
+**AvatarUploaderMvc5** is based on a standard ASP.NET MVC 5 template, extended with some other packages: 
 - [jquery](https://jquery.com/)
 - [jquery.form](https://github.com/malsup/form)
 - [jcrop](http://github.com/tapmodo/Jcrop)
 
-The project contains an **AvatarController.cs** controller class that contains the back-end code
-for receiving the uploaded file and saving the final, cropped selection.
+### Important files ####
+
+The **site.avatar.js** has the front-end code.
+
+The **site.avatar.css** contains the style customization necessary for the cropping to work.
+
+The **AvatarController.cs** controller contains the back-end code for receiving the uploaded file and 
+saving the final, cropped selection.
 
 The **Views/Avatar** folder contains the main partial view that has three distinct parts - a box
 for selecting a file and showing the upload progress, a box for cropping the image,
@@ -18,9 +26,11 @@ for a smooth, contained solution.
 
 ### Run the example ###
 
-To try the functionality you must:
+To run the project you must:
 1. Restore all NuGet packages.
-2. Search the project code for *"ToDo"* and address each of them.
+2. Search the project code for `ToDo` and address each of them. At least go to these files:
+   - *site.avatar.css*
+   - *AvatarController.cs*
 3. Just run the project.
 
 Click on the Avatar Upload item in the navigation bar (top menu), and use the buttons on the page 
