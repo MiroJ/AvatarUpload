@@ -1,7 +1,7 @@
 ﻿// ================================================================
 //  Description: Avatar Upload supporting script
-//  License:     MIT - check License.txt file for details
-//  Author:      Codative Corp. (http://www.codative.com/)
+//  License:     MIT - check License.md file for details
+//  Author:      MiroJ (https://github.com/MiroJ)
 // ================================================================
 var jcrop_api,
     boundx,
